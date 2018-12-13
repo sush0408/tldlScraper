@@ -38,3 +38,8 @@ class Recipe(Item):
     url=Field()
     tags= Field()
     accompaniments = Field()
+    nutrients = Field()
+
+class Nutrient(Item):
+    name = Field()
+    quantity = Field()

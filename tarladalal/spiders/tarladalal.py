@@ -6,7 +6,7 @@ from scrapy.selector import Selector
 from scrapy.selector import HtmlXPathSelector
 from scrapy.http.request import Request
 from scrapy.linkextractor import LinkExtractor
-from tarladalal.items import Recipe ,Ingredient
+from tarladalal.items import Recipe ,Ingredient,Nutrient
 import time
 import json
 
@@ -19,10 +19,11 @@ class vegRecipeScraper(CrawlSpider):
     allowed_domains=["tarladalal.com"]
 
     deny_words = ['/recipes/','privacy','terms','media','/recipe/','About','Archives',\
-                    'index','comment','email','about']
+                    'index','comment','email','about','mypage','reviews','Reviews','contact','credits','Contacts'\
+                    ]
 
     # The URLs to start with
-    start_urls = ["https://www.tarladalal.com/RecipeCategories.aspx"]
+    start_urls = ["https://www.tarladalal.com/Banana-Apple-Porridge-4656r"]
 
     # This spider has one rule: extract all (unique and canonicalized) links, follow them and parse them using the parse_items method
     rules = [
@@ -101,6 +102,25 @@ class vegRecipeScraper(CrawlSpider):
             recipe['category'] = nav[len(nav)-1]
 
             recipe['url'] = response.url
+
+            recipe['accompaniments'] = response.xpath('//div[@id="accompaniments"]/h4/a/text()').extract()
+
+
+            # nutrients
+            nutrients = []
+            nutrients_nodes = response.xpath('//table[@id="rcpnutrients"]/tr').extract()
+            for i in range(len(nutrients_nodes)):
+                try:
+                    name = response.xpath('//table[@id="rcpnutrients"]/tr/td/text()')[i].extract()
+                    quantity = response.xpath('//table[@id="rcpnutrients"]/tr/td/span/text()')[i].extract()
+                except:
+                    continue
+
+                nutrient = Nutrient()
+                nutrient['name'] = name
+                nutrient['quantity'] = quantity
+                nutrients.append(nutrient)
+            recipe['nutrients'] = nutrients
 
             print(recipe)
 
